@@ -3,7 +3,27 @@ const dbconnect = require("../config/dbconnect");
 const router = express.Router();
 const dashboardSQL = require("../sql/dashboard");
 
-router.get("/", (req, res) => {
+const checkToken = (req, res, next) => {
+  console.log(req.headers.authorization.split("Bearer ")[1]);
+  console.log(12312321312);
+  const decode = { id: 1 };
+
+  req.id = decode.id;
+
+  const checkTokenValid = true;
+  try {
+    if (checkTokenValid) {
+      next();
+    } else {
+      res.json({ error_code: 498, error_msg: "Token invalid" });
+    }
+  } catch (error) {
+    res.json({ error_code: 498, error_msg: "Token invalid" });
+  }
+};
+
+router.get("/", checkToken, (req, res) => {
+  console.log(req.id);
   const { name, phoneNumber, trangthaiID } = req.query;
 
   dbconnect.query(
