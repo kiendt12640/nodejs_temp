@@ -1,31 +1,26 @@
 const express = require("express");
 const dbconnect = require("../config/dbconnect");
 const router = express.Router();
-const signupSQL = require("../sql/signup");
+const signinSQL = require("../sql/signin");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const { promisify } = require("util");
+const { isEmpty } = require("../utils/validate");
 
 router.post("/", (req, res) => {
   try {
     const { phoneNumber, password } = req.body;
 
-    dbconnect.query(signupSQL.searchAcc(), { phoneNumber }, (_, result) => {
-      if (!result) {
+    dbconnect.query(signinSQL.searchAcc(phoneNumber), (_, result) => {
+      if (isEmpty(result) || password != "111111") {
         res.send({
-          message: "PhoneNumber or Password is incorrect",
+          error_code: 401,
+          message: "PhoneNumber or password is incorrect",
         });
       } else {
         const id = result[0].id;
-
-        const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-          expiresIn: "30m",
+        const token = jwt.sign({ id }, "111111", {
+          expiresIn: "60m",
         });
-
-        res.send("userSave", {
-          token,
-          expires: new Date(Date.now() + 30 * 60 * 1000),
-        });
+        res.send({ token, error_code: 0 });
       }
     });
   } catch (err) {

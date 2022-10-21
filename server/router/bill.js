@@ -1,4 +1,5 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const dbconnect = require("../config/dbconnect");
 const router = express.Router();
 const billSQL = require("../sql/bill");
@@ -11,7 +12,25 @@ const query = (sql) =>
     });
   });
 
-router.get("/", async (req, res) => {
+const checkToken = (req, res, next) => {
+  const authHeader = req.headers["authorization"];
+  try {
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      jwt.verify(token, "111111", (err, data) => {
+        if (err) throw err;
+        req.id = data.id;
+        next();
+      });
+    } else {
+      res.send({ error_code: 498, error_msg: "Token invalid" });
+    }
+  } catch (error) {
+    res.send({ error_code: 498, error_msg: "Token invalid" });
+  }
+};
+
+router.get("/", checkToken, async (req, res) => {
   const { trangthaidonID, khachhangID, ngaythanhtoan, ngaynhanhang } =
     req.query;
 
@@ -25,6 +44,8 @@ router.get("/", async (req, res) => {
     const billDetail = await query(
       billSQL.searchBillDetail(element.hoa_don_id)
     );
+
+    console.log(element.tongtien);
     for (const ele of billDetail) {
       let price = ele.soluong * ele.giadichvu;
       element.tongtien += price;
@@ -33,45 +54,14 @@ router.get("/", async (req, res) => {
   }
 
   res.send(data);
-
-  // const bill = await dbconnect.query(
-  //   billSQL.searchBill(trangthaidonID, khachhangID, ngaythanhtoan, ngaynhanhang)
-  // );
-
-  // dbconnect.query(
-  //   billSQL.searchBill(
-  //     trangthaidonID,
-  //     khachhangID,
-  //     ngaythanhtoan,
-  //     ngaynhanhang
-  //   ),
-  //   async (err, result) => {
-  //     if (err) throw err;
-
-  //     for (let index = 0; index < result.length; index++) {
-  //       console.log(result[index].id);
-  //       dbconnect.query(
-  //         billSQL.searchBillDetail(result[index].hoa_don_id),
-  //         (e, r) => {
-  //           if (e) throw e;
-  //           data = [...data, { ...result, hdct: r }];
-  //           if (index === result.length - 1) {
-  //             res.send(data);
-  //           }
-  //         }
-  //       );
-  //     }
-  //   }
-  // );
 });
 
-router.post("/", (req, res) => {
+router.post("/", checkToken, (req, res) => {
   const {
     ngaynhanhang,
     ngaytrahang,
     trangthaidonID,
     khachhangID,
-    ngaythanhtoan,
     listBillDetail,
   } = req.body;
 
@@ -80,9 +70,9 @@ router.post("/", (req, res) => {
     {
       trangthaidonID,
       khachhangID,
-      ngaythanhtoan: null,
       ngaynhanhang,
       ngaytrahang,
+      nhanvienID: req.id,
     },
     (err, result) => {
       if (err) throw err;
@@ -98,7 +88,7 @@ router.post("/", (req, res) => {
   );
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", checkToken, (req, res) => {
   const {
     trangthaidonID,
     khachhangID,
@@ -124,7 +114,7 @@ router.put("/:id", (req, res) => {
   );
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", checkToken, (req, res) => {
   dbconnect.query(billSQL.deleteBill(req.params.id), (err, result) => {
     if (err) throw err;
     res.send(result);

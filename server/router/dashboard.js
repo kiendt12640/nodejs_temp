@@ -2,28 +2,27 @@ const express = require("express");
 const dbconnect = require("../config/dbconnect");
 const router = express.Router();
 const dashboardSQL = require("../sql/dashboard");
+const jwt = require("jsonwebtoken");
 
 const checkToken = (req, res, next) => {
-  console.log(req.headers.authorization.split("Bearer ")[1]);
-  console.log(12312321312);
-  const decode = { id: 1 };
-
-  req.id = decode.id;
-
-  const checkTokenValid = true;
+  const authHeader = req.headers["authorization"];
   try {
-    if (checkTokenValid) {
-      next();
+    if (authHeader) {
+      const token = authHeader.split(" ")[1];
+      jwt.verify(token, "111111", (err, data) => {
+        if (err) throw err;
+        req.id = data.id;
+        next();
+      });
     } else {
-      res.json({ error_code: 498, error_msg: "Token invalid" });
+      res.send({ error_code: 498, error_msg: "Token invalid" });
     }
   } catch (error) {
-    res.json({ error_code: 498, error_msg: "Token invalid" });
+    res.send({ error_code: 498, error_msg: "Token invalid" });
   }
 };
 
 router.get("/", checkToken, (req, res) => {
-  console.log(req.id);
   const { name, phoneNumber, trangthaiID } = req.query;
 
   dbconnect.query(
@@ -35,7 +34,7 @@ router.get("/", checkToken, (req, res) => {
   );
 });
 
-router.post("/", (req, res) => {
+router.post("/", checkToken, (req, res) => {
   const { name, phoneNumber, trangthaiID } = req.body;
 
   dbconnect.query(
@@ -48,7 +47,7 @@ router.post("/", (req, res) => {
   );
 });
 
-router.put("/:id", (req, res) => {
+router.put("/:id", checkToken, (req, res) => {
   const { name, phoneNumber, trangthaiID } = req.body;
   dbconnect.query(
     dashboardSQL.updateNV(name, phoneNumber, trangthaiID, req.params.id),
@@ -59,7 +58,7 @@ router.put("/:id", (req, res) => {
   );
 });
 
-router.delete("/:id", (req, res) => {
+router.delete("/:id", checkToken, (req, res) => {
   dbconnect.query(dashboardSQL.deleteNV(req.params.id), (err, result) => {
     if (err) throw err;
     res.send(result);
