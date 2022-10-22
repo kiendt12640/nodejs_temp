@@ -5,30 +5,39 @@ const billSQL = require("../sql/bill");
 const { queryDB } = require("../utils/query");
 const { checkToken } = require("../utils/checkToken");
 
-router.get("/", checkToken, async (req, res) => {
+router.get("/get_bills", checkToken, async (req, res) => {
   const { trangthaidonID, khachhangID, ngaythanhtoan, ngaynhanhang } =
     req.query;
 
-  let data = [];
+  try {
+    let data = [];
 
-  const bill = await queryDB(
-    billSQL.searchBill(trangthaidonID, khachhangID, ngaythanhtoan, ngaynhanhang)
-  );
-
-  console.log(bill);
-
-  for (const element of bill) {
-    const billDetail = await queryDB(
-      billSQL.searchBillDetail(element.hoa_don_id)
+    const bill = await queryDB(
+      billSQL.searchBill(
+        trangthaidonID,
+        khachhangID,
+        ngaythanhtoan,
+        ngaynhanhang
+      )
     );
-    for (const ele of billDetail) {
-      let price = ele.soluong * ele.giadichvu;
-      element.tongtien += price; // nếu tổng tiền đang null hoặc undefined sẽ lỗi
-    }
-    data = [...data, { ...element, hdct: billDetail }];
-  }
 
-  res.send({ error_code: 0, data: data, message: null });
+    console.log(bill);
+
+    for (const element of bill) {
+      const billDetail = await queryDB(
+        billSQL.searchBillDetail(element.hoa_don_id)
+      );
+      for (const ele of billDetail) {
+        let price = ele.soluong * ele.giadichvu;
+        element.tongtien += price; // nếu tổng tiền đang null hoặc undefined sẽ lỗi
+      }
+      data = [...data, { ...element, hdct: billDetail }];
+    }
+
+    res.send({ error_code: 0, data: data, message: null });
+  } catch (err) {
+    res.json({ error: err });
+  }
 });
 
 router.post("/", checkToken, async (req, res) => {
@@ -39,6 +48,23 @@ router.post("/", checkToken, async (req, res) => {
     khachhangID,
     listBillDetail,
   } = req.body;
+
+  // chuyển sang dùng hàm query dựng sẵn
+  // await queryDB(billSQL.insertBill, {trangthaidonID,
+  //   khachhangID,
+  //   ngaynhanhang,
+  //   ngaytrahang,
+  //   nhanvienID: req.id}, (err, result) => {
+  //     if (err) throw err;
+  //     for (let i = 0; i < listBillDetail.length; i++) {
+  //       dbconnect.query(billSQL.insertBillDetail, {
+  //         dichvuID: listBillDetail[i].dichvuID,
+  //         soluong: listBillDetail[i].soluong,
+  //         hoadonID: result.insertId,
+  //       });
+  //   }
+  //   res.send({ error_code: 0, result: result, message: "Thêm thành công" });
+  // })
 
   dbconnect.query(
     billSQL.insertBill,

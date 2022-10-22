@@ -1,10 +1,10 @@
 const express = require("express");
 const dbconnect = require("../config/dbconnect");
+const statusBillSQL = require("../sql/statusBill");
 const router = express.Router();
 
 router.get("/", (_, res) => {
-  let sql = "SELECT * FROM trang_thai_don";
-  dbconnect.query(sql, (err, result) => {
+  dbconnect.query(statusBillSQL.searchStatusBill(), (err, result) => {
     if (err) throw err;
     res.send(result);
   });
