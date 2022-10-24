@@ -44,14 +44,13 @@ const updateBill = (
   ngaythanhtoan,
   ngaynhanhang,
   ngaytrahang,
-  checkDelete,
   id
 ) => {
-  let xacNhanXoa = "";
-  if (checkDelete) {
-    xacNhanXoa = `, xacNhanXoa = ${checkDelete}`;
-  }
-  return `UPDATE hoa_don SET trangthaidonID = '${trangthaidonID}', khachhangID = '${khachhangID}', ngaythanhtoan = '${ngaythanhtoan}', ngaynhanhang = '${ngaynhanhang}', ngaytrahang = '${ngaytrahang}'${xacNhanXoa} WHERE id = ${id}`;
+  return `UPDATE hoa_don SET trangthaidonID = '${trangthaidonID}', khachhangID = '${khachhangID}', ngaythanhtoan = '${ngaythanhtoan}', ngaynhanhang = '${ngaynhanhang}', ngaytrahang = '${ngaytrahang}' WHERE id = ${id}`;
+};
+
+const updateCheckDelete = (checkDelete, id) => {
+  return `UPDATE hoa_don SET xacNhanXoa = ${checkDelete} WHERE id = ${id}`;
 };
 
 const deleteBill = (id) => `DELETE FROM hoa_don WHERE id = ${id}`;
@@ -60,6 +59,7 @@ module.exports = {
   searchBill,
   insertBill,
   updateBill,
+  updateCheckDelete,
   deleteBill,
   insertBillDetail,
   searchBillDetail,

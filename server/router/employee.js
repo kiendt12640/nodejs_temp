@@ -9,55 +9,69 @@ const { isEmpty } = require("../utils/validate");
 require("dotenv").config();
 
 router.get("/", checkToken, (req, res) => {
-  const { name, phoneNumber, trangthaiID } = req.query;
+  try {
+    const { name, phoneNumber, trangthaiID } = req.query;
 
-  dbconnect.query(
-    employeeSQL.searchNV(name, phoneNumber, trangthaiID),
-    (err, result) => {
-      if (err) throw err;
-      res.send({ error_code: 0, data: result, message: null });
-    }
-  );
+    dbconnect.query(
+      employeeSQL.searchNV(name, phoneNumber, trangthaiID),
+      (err, result) => {
+        if (err) throw err;
+        res.send({ error_code: 0, data: result, message: null });
+      }
+    );
+  } catch (err) {
+    res.json({ error_code: 404, message: "Not found" });
+  }
 });
 
 router.post("/", checkToken, (req, res) => {
-  const { name, phoneNumber, trangthaiID } = req.body;
-
-  dbconnect.query(
-    employeeSQL.insertNV,
-    { name, phoneNumber, trangthaiID },
-    (err, result) => {
-      if (!name || !phoneNumber || !trangthaiID) {
-        res.send({ error_code: 498, message: "Invalid data" });
-      } else {
-        if (err) throw err;
-        res.send(result);
-      }
+  try {
+    const { name, phoneNumber, trangthaiID } = req.body;
+    if (!name || !phoneNumber || !trangthaiID) {
+      res.send({ error_code: 498, message: "Invalid data" });
     }
-  );
+
+    dbconnect.query(
+      employeeSQL.insertNV,
+      { name, phoneNumber, trangthaiID },
+      (err, result) => {
+        if (err) throw err;
+        res.send({ error_code: 0, result: result, message: null });
+      }
+    );
+  } catch (err) {
+    res.json({ error_code: 404, message: "Cannot add employee" });
+  }
 });
 
 router.put("/:id", checkToken, (req, res) => {
-  const { name, phoneNumber, trangthaiID } = req.body;
-
-  dbconnect.query(
-    employeeSQL.updateNV(name, phoneNumber, trangthaiID, req.params.id),
-    (err, result) => {
-      if (!name || !phoneNumber || !trangthaiID) {
-        res.send({ error_code: 498, message: "Invalid data" });
-      } else {
-        if (err) throw err;
-        res.send(result);
-      }
+  try {
+    const { name, phoneNumber, trangthaiID } = req.body;
+    if (!name || !phoneNumber || !trangthaiID) {
+      res.send({ error_code: 498, message: "Invalid data" });
     }
-  );
+
+    dbconnect.query(
+      employeeSQL.updateNV(name, phoneNumber, trangthaiID, req.params.id),
+      (err, result) => {
+        if (err) throw err;
+        res.send({ error_code: 0, result: result, message: null });
+      }
+    );
+  } catch (err) {
+    res.json({ error_code: 404, message: "Cannot add customer" });
+  }
 });
 
 router.delete("/:id", checkToken, (req, res) => {
-  dbconnect.query(employeeSQL.deleteNV(req.params.id), (err, result) => {
-    if (err) throw err;
-    res.send(result);
-  });
+  try {
+    dbconnect.query(employeeSQL.deleteNV(req.params.id), (err, result) => {
+      if (err) throw err;
+      res.send({ error_code: 0, result: result, message: null });
+    });
+  } catch (err) {
+    res.json({ error_code: 404, message: "Cannot delete employee" });
+  }
 });
 
 router.post("/sign-in", (req, res) => {
@@ -67,7 +81,7 @@ router.post("/sign-in", (req, res) => {
     dbconnect.query(signinSQL.searchAcc(phoneNumber), (_, result) => {
       if (isEmpty(result) || password != `${process.env.JWT_SECRET}`) {
         res.send({
-          error_code: 401,
+          error_code: 404,
           message: "PhoneNumber or password is incorrect",
         });
       } else {
@@ -79,7 +93,7 @@ router.post("/sign-in", (req, res) => {
       }
     });
   } catch (err) {
-    res.json({ error: err });
+    res.json({ error_code: 404, message: "Error" });
   }
 });
 

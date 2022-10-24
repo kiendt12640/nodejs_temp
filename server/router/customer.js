@@ -5,55 +5,74 @@ const customerSQL = require("../sql/customer");
 const { checkToken } = require("../utils/checkToken");
 
 router.get("/", checkToken, (req, res) => {
-  const { name, phoneNumber } = req.query;
+  try {
+    const { name, phoneNumber } = req.query;
 
-  dbconnect.query(
-    customerSQL.searchCustomer(name, phoneNumber),
-    (err, result) => {
-      if (err) throw err;
-      res.send({ error_code: 0, data: result, message: null });
-    }
-  );
+    dbconnect.query(
+      customerSQL.searchCustomer(name, phoneNumber),
+      (err, result) => {
+        if (err) throw err;
+        res.send({ error_code: 0, data: result, message: null });
+      }
+    );
+  } catch (err) {
+    res.json({ error_code: 404, message: "Not found" });
+  }
 });
 
 router.post("/", checkToken, (req, res) => {
-  const { name, phoneNumber } = req.body;
+  try {
+    const { name, phoneNumber } = req.body;
 
-  dbconnect.query(
-    customerSQL.insertCustomer,
-    { name, phoneNumber },
-    (err, result) => {
-      if (!name || !phoneNumber) {
-        res.send({ error_code: 498, message: "Invalid data" });
-      } else {
-        if (err) throw err;
-        res.send(result);
+    dbconnect.query(
+      customerSQL.insertCustomer,
+      { name, phoneNumber },
+      (err, result) => {
+        if (!name || !phoneNumber) {
+          res.send({ error_code: 404, message: "Invalid data" });
+        } else {
+          if (err) throw err;
+          res.send({ error_code: 0, result: result, message: null });
+        }
       }
-    }
-  );
+    );
+  } catch (err) {
+    res.json({ error_code: 404, message: "Cannot add customer" });
+  }
 });
 
 router.put("/:id", checkToken, (req, res) => {
-  const { name, phoneNumber } = req.body;
+  try {
+    const { name, phoneNumber } = req.body;
 
-  dbconnect.query(
-    customerSQL.updateCustomer(name, phoneNumber, req.params.id),
-    (err, result) => {
-      if (!name || !phoneNumber) {
-        res.send({ error_code: 498, message: "Invalid data" });
-      } else {
-        if (err) throw err;
-        res.send(result);
+    dbconnect.query(
+      customerSQL.updateCustomer(name, phoneNumber, req.params.id),
+      (err, result) => {
+        if (!name || !phoneNumber) {
+          res.send({ error_code: 404, message: "Invalid data" });
+        } else {
+          if (err) throw err;
+          res.send({ error_code: 0, result: result, message: null });
+        }
       }
-    }
-  );
+    );
+  } catch (err) {
+    res.json({ error_code: 404, message: "Cannot update customer" });
+  }
 });
 
 router.delete("/:id", checkToken, (req, res) => {
-  dbconnect.query(customerSQL.deleteCustomer(req.params.id), (err, result) => {
-    if (err) throw err;
-    res.send(result);
-  });
+  try {
+    dbconnect.query(
+      customerSQL.deleteCustomer(req.params.id),
+      (err, result) => {
+        if (err) throw err;
+        res.send({ error_code: 0, result: result, message: null });
+      }
+    );
+  } catch (err) {
+    res.json({ error_code: 404, message: "Cannot delete customer" });
+  }
 });
 
 module.exports = router;
