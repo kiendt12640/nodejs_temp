@@ -1,22 +1,24 @@
 const express = require("express");
-const dbconnect = require("../config/dbconnect");
 const router = express.Router();
 const serviceSQL = require("../sql/services");
+const { queryDB } = require("../utils/query");
 const { checkToken } = require("../utils/checkToken");
 
-router.get("/", checkToken, (req, res) => {
+router.get("/", checkToken, async (req, res) => {
   try {
     const { tendichvu, giadichvu } = req.query;
 
-    dbconnect.query(
-      serviceSQL.searchService(tendichvu, giadichvu),
-      (err, result) => {
-        if (err) throw err;
-        res.send({ error_code: 0, data: result, message: null });
-      }
+    const service = await queryDB(
+      serviceSQL.searchService(tendichvu, giadichvu)
     );
+
+    res.send({ error_code: 0, data: service, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Not found" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 

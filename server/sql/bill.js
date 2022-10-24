@@ -1,19 +1,11 @@
-const searchBill = (
-  trangthaidonID,
-  khachhangID,
-  ngaythanhtoan,
-  ngaynhanhang
-) => {
+const searchBill = (trangthaidonID, khachhangID) => {
   let condition = "";
-  if (trangthaidonID || khachhangID || ngaythanhtoan || ngaynhanhang) {
+  if (trangthaidonID || khachhangID) {
     condition += "where ";
     const queryArray = [];
     if (trangthaidonID)
       queryArray.push(`trang_thai_don.id = ${trangthaidonID}`);
     if (khachhangID) queryArray.push(`khach_hang.id = ${khachhangID}`);
-    if (ngaythanhtoan)
-      queryArray.push(`hoa_don.ngaythanhtoan = ${ngaythanhtoan}`);
-    if (ngaynhanhang) queryArray.push(`hoa_don.ngaynhanhang = ${ngaynhanhang}`);
 
     condition += queryArray.join(" and ");
   }
@@ -49,17 +41,14 @@ const updateBill = (
   return `UPDATE hoa_don SET trangthaidonID = '${trangthaidonID}', khachhangID = '${khachhangID}', ngaythanhtoan = '${ngaythanhtoan}', ngaynhanhang = '${ngaynhanhang}', ngaytrahang = '${ngaytrahang}' WHERE id = ${id}`;
 };
 
-const updateCheckDelete = (checkDelete, id) => {
-  return `UPDATE hoa_don SET xacNhanXoa = ${checkDelete} WHERE id = ${id}`;
+const deleteBill = (id) => {
+  return `UPDATE hoa_don SET xacNhanXoa = 1 WHERE id = ${id}`;
 };
-
-const deleteBill = (id) => `DELETE FROM hoa_don WHERE id = ${id}`;
 
 module.exports = {
   searchBill,
   insertBill,
   updateBill,
-  updateCheckDelete,
   deleteBill,
   insertBillDetail,
   searchBillDetail,

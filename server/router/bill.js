@@ -4,21 +4,14 @@ const router = express.Router();
 const billSQL = require("../sql/bill");
 const { queryDB } = require("../utils/query");
 const { checkToken } = require("../utils/checkToken");
+const { queryDBInsert } = require("../utils/queryInsert");
 
-router.get("/", checkToken, async (req, res) => { // đặt tên cho route ví dụ /list
-  const { trangthaidonID, khachhangID, ngaythanhtoan, ngaynhanhang } =
-    req.query;
+router.get("/list", checkToken, async (req, res) => {
+  const { trangthaidonID, khachhangID } = req.query;
 
   let data = [];
   try {
-    const bill = await queryDB(
-      billSQL.searchBill(
-        trangthaidonID,
-        khachhangID,
-        ngaythanhtoan,
-        ngaynhanhang
-      )
-    );
+    const bill = await queryDB(billSQL.searchBill(trangthaidonID, khachhangID));
 
     for (const element of bill) {
       element.tongtien = 0;
@@ -34,7 +27,11 @@ router.get("/", checkToken, async (req, res) => { // đặt tên cho route ví d
 
     res.send({ error_code: 0, data: data, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Not found" }); // trả về lỗi chung 500, message: "Something went wrong, try again later", error_debug: err
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 
@@ -49,10 +46,39 @@ router.post("/", checkToken, async (req, res) => {
     } = req.body;
 
     if (!ngaynhanhang || !ngaytrahang || !khachhangID || !listBillDetail) {
-      res.send({ error_code: 404, message: "Invalid data" }); // không return cho dù bắn về lỗi vẫn sẽ insert
+      res.json({ error_code: 404, message: "Invalid data" }); // không return cho dù bắn về lỗi vẫn sẽ insert
     }
 
     // đổi sang thành dạng promise
+
+    // new Promise((res, reject) => {
+    //   try {
+    //     dbconnect.query(
+    //       billSQL.insertBill,
+    //       {
+    //         trangthaidonID,
+    //         khachhangID,
+    //         ngaynhanhang,
+    //         ngaytrahang,
+    //         nhanvienID: req.id,
+    //       },
+    //       async (error, result) => {
+    //         if (error) reject(error);
+    //         for (let i = 0; i < listBillDetail.length; i++) {
+    //           await queryDBInsert(billSQL.insertBillDetail, {
+    //             dichvuID: listBillDetail[i].dichvuID,
+    //             soluong: listBillDetail[i].soluong,
+    //             hoadonID: result.insertId,
+    //           });
+    //         }
+    //         res(result);
+    //       }
+    //     );
+    //   } catch (error) {
+    //     reject(error);
+    //   }
+    // });
+
     dbconnect.query(
       billSQL.insertBill,
       {
@@ -75,11 +101,15 @@ router.post("/", checkToken, async (req, res) => {
       }
     );
   } catch (err) {
-    res.json({ error_code: 404, message: "Cannot add bill" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 
-router.put("/:id", checkToken, (req, res) => {
+router.put("/:id", checkToken, async (req, res) => {
   try {
     const {
       trangthaidonID,
@@ -89,54 +119,49 @@ router.put("/:id", checkToken, (req, res) => {
       ngaytrahang,
     } = req.body;
 
-    // kiểm tra id
     if (
       !ngaynhanhang ||
       !ngaytrahang ||
       !khachhangID ||
       !trangthaidonID ||
-      !ngaythanhtoan
+      !ngaythanhtoan ||
+      !req.params.id
     ) {
       res.send({ error_code: 404, message: "Invalid data" });
     }
 
-    dbconnect.query(
+    const bill = await queryDB(
       billSQL.updateBill(
         trangthaidonID,
         khachhangID,
-        ngaythanhtoan,
         ngaynhanhang,
+        ngaythanhtoan,
         ngaytrahang,
         req.params.id
-      ),
-      (err, result) => {
-        if (err) throw err;
-        res.send({ error_code: 0, result: result, message: null });
-      }
+      )
     );
+
+    res.send({ error_code: 0, data: bill, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Cannot update bill" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 
-router.put("/delete_bill/:id", checkToken, (req, res) => {
+router.put("/delete_bill/:id", checkToken, async (req, res) => {
   try {
-    // checkDelete ? chỉ cần vào delete thì mặc định trường delete, không cần phải truyền xuống
-    const { checkDelete } = req.body;
+    const bill = await queryDB(billSQL.deleteBill(req.params.id));
 
-    if (!checkDelete) {
-      res.send({ error_code: 404, message: "Invalid data" });
-    }
-
-    dbconnect.query(
-      billSQL.updateCheckDelete(checkDelete, req.params.id),
-      (err, result) => {
-        if (err) throw err;
-        res.send({ error_code: 0, result: result, message: null });
-      }
-    );
+    res.send({ error_code: 0, data: bill, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Cannot delete bill" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 

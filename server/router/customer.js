@@ -1,77 +1,81 @@
 const express = require("express");
-const dbconnect = require("../config/dbconnect");
 const router = express.Router();
 const customerSQL = require("../sql/customer");
 const { checkToken } = require("../utils/checkToken");
+const { queryDB } = require("../utils/query");
+const { queryDBInsert } = require("../utils/queryInsert");
 
-router.get("/", checkToken, (req, res) => {
+router.get("/", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber } = req.query;
 
-    dbconnect.query(
-      customerSQL.searchCustomer(name, phoneNumber),
-      (err, result) => {
-        if (err) throw err;
-        res.send({ error_code: 0, data: result, message: null });
-      }
+    const customer = await queryDB(
+      customerSQL.searchCustomer(name, phoneNumber)
     );
+
+    res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Not found" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 
-router.post("/", checkToken, (req, res) => {
+router.post("/", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber } = req.body;
+    if (!name || !phoneNumber) {
+      res.json({ error_code: 404, message: "Invalid data" });
+    }
 
-    dbconnect.query(
-      customerSQL.insertCustomer,
-      { name, phoneNumber },
-      (err, result) => {
-        if (!name || !phoneNumber) {
-          res.send({ error_code: 404, message: "Invalid data" });
-        } else {
-          if (err) throw err;
-          res.send({ error_code: 0, result: result, message: null });
-        }
-      }
-    );
+    const customer = await queryDBInsert(customerSQL.insertCustomer, {
+      name,
+      phoneNumber,
+    });
+    res.send({ error_code: 0, result: customer, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Cannot add customer" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 
-router.put("/:id", checkToken, (req, res) => {
+router.put("/:id", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber } = req.body;
+    if (!name || !phoneNumber || !req.params.id) {
+      res.send({ error_code: 404, message: "Invalid data" });
+    }
 
-    dbconnect.query(
-      customerSQL.updateCustomer(name, phoneNumber, req.params.id),
-      (err, result) => {
-        if (!name || !phoneNumber) {
-          res.send({ error_code: 404, message: "Invalid data" });
-        } else {
-          if (err) throw err;
-          res.send({ error_code: 0, result: result, message: null });
-        }
-      }
+    const customer = await queryDB(
+      customerSQL.updateCustomer(name, phoneNumber, req.params.id)
     );
+
+    res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Cannot update customer" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 
-router.delete("/:id", checkToken, (req, res) => {
+router.delete("/:id", checkToken, async (req, res) => {
   try {
-    dbconnect.query(
-      customerSQL.deleteCustomer(req.params.id),
-      (err, result) => {
-        if (err) throw err;
-        res.send({ error_code: 0, result: result, message: null });
-      }
-    );
+    const customer = await queryDB(customerSQL.deleteCustomer(req.params.id));
+
+    res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Cannot delete customer" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 

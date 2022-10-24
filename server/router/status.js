@@ -1,16 +1,19 @@
 const express = require("express");
-const dbconnect = require("../config/dbconnect");
 const statusSQL = require("../sql/status");
+const { queryDB } = require("../utils/query");
 const router = express.Router();
 
-router.get("/", (_, res) => {
+router.get("/", async (_, res) => {
   try {
-    dbconnect.query(statusSQL.searchStatus(), (err, result) => {
-      if (err) throw err;
-      res.send({ error_code: 0, data: result, message: null });
-    });
+    const status = await queryDB(statusSQL.searchStatus());
+
+    res.send({ error_code: 0, data: status, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Not found" });
+    res.json({
+      error_code: 500,
+      message: "Something went wrong, try again later",
+      error_debug: err,
+    });
   }
 });
 
