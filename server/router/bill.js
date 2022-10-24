@@ -5,7 +5,7 @@ const billSQL = require("../sql/bill");
 const { queryDB } = require("../utils/query");
 const { checkToken } = require("../utils/checkToken");
 
-router.get("/", checkToken, async (req, res) => {
+router.get("/", checkToken, async (req, res) => { // đặt tên cho route ví dụ /list
   const { trangthaidonID, khachhangID, ngaythanhtoan, ngaynhanhang } =
     req.query;
 
@@ -34,7 +34,7 @@ router.get("/", checkToken, async (req, res) => {
 
     res.send({ error_code: 0, data: data, message: null });
   } catch (err) {
-    res.json({ error_code: 404, message: "Not found" });
+    res.json({ error_code: 404, message: "Not found" }); // trả về lỗi chung 500, message: "Something went wrong, try again later", error_debug: err
   }
 });
 
@@ -49,9 +49,10 @@ router.post("/", checkToken, async (req, res) => {
     } = req.body;
 
     if (!ngaynhanhang || !ngaytrahang || !khachhangID || !listBillDetail) {
-      res.send({ error_code: 404, message: "Invalid data" });
+      res.send({ error_code: 404, message: "Invalid data" }); // không return cho dù bắn về lỗi vẫn sẽ insert
     }
 
+    // đổi sang thành dạng promise
     dbconnect.query(
       billSQL.insertBill,
       {
@@ -88,6 +89,7 @@ router.put("/:id", checkToken, (req, res) => {
       ngaytrahang,
     } = req.body;
 
+    // kiểm tra id
     if (
       !ngaynhanhang ||
       !ngaytrahang ||
@@ -119,6 +121,7 @@ router.put("/:id", checkToken, (req, res) => {
 
 router.put("/delete_bill/:id", checkToken, (req, res) => {
   try {
+    // checkDelete ? chỉ cần vào delete thì mặc định trường delete, không cần phải truyền xuống
     const { checkDelete } = req.body;
 
     if (!checkDelete) {
