@@ -26,14 +26,14 @@ router.get("/", checkToken, async (req, res) => {
       );
       for (const ele of billDetail) {
         let price = ele.soluong * ele.giadichvu;
-        element.tongtien += price; // nếu tổng tiền đang null hoặc undefined sẽ lỗi
+        element.tongtien += price; // nếu tổng tiền đang undefined sẽ lỗi ? lỗi này chưa sửa
       }
       data = [...data, { ...element, hdct: billDetail }];
     }
 
     res.send({ error_code: 0, data: data, message: null });
   } catch (err) {
-    res.json({ error: err });
+    res.json({ error: err }); // error code, message chưa có
   }
 });
 
@@ -45,6 +45,8 @@ router.post("/", checkToken, async (req, res) => {
     khachhangID,
     listBillDetail,
   } = req.body;
+
+  // Kiểm tra dữ liệu nhập vào thì phải kiểm tra trước khi insert
 
   dbconnect.query(
     billSQL.insertBill,
@@ -67,7 +69,7 @@ router.post("/", checkToken, async (req, res) => {
             hoadonID: result.insertId,
           });
         }
-        res.send(result);
+        res.send(result); // error code, message chưa có
       }
     }
   );
@@ -75,6 +77,7 @@ router.post("/", checkToken, async (req, res) => {
 
 // tương tự
 router.put("/:id", checkToken, (req, res) => {
+  //  không có try catch
   const {
     trangthaidonID,
     khachhangID,
@@ -83,6 +86,8 @@ router.put("/:id", checkToken, (req, res) => {
     ngaytrahang,
     checkDelete,
   } = req.body;
+
+  // Kiểm tra dữ liệu nhập vào thì phải kiểm tra trước khi update
 
   dbconnect.query(
     billSQL.updateBill(
@@ -96,16 +101,19 @@ router.put("/:id", checkToken, (req, res) => {
     ),
     (err, result) => {
       if (!trangthaidonID || !khachhangID || !ngaynhanhang || !ngaytrahang) {
+        // 498 ? 498 là token expire
         res.send({ error_code: 498, message: "Invalid data" });
       } else {
         if (err) throw err;
-        res.send(result);
+        res.send(result); // error code, message chưa có
       }
     }
   );
 });
 
+// xóa hóa đơn ? hóa đơn không được xóa chỉ được gắn cờ xóa
 router.delete("/:id", checkToken, (req, res) => {
+  //  không có try catch
   dbconnect.query(billSQL.deleteBill(req.params.id), (err, result) => {
     if (err) throw err;
     res.send(result);
