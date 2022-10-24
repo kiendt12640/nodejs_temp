@@ -10,25 +10,31 @@ router.get("/", checkToken, async (req, res) => {
     req.query;
 
   let data = [];
-
-  const bill = await queryDB(
-    billSQL.searchBill(trangthaidonID, khachhangID, ngaythanhtoan, ngaynhanhang)
-  );
-
-  console.log(bill);
-
-  for (const element of bill) {
-    const billDetail = await queryDB(
-      billSQL.searchBillDetail(element.hoa_don_id)
+  try {
+    const bill = await queryDB(
+      billSQL.searchBill(
+        trangthaidonID,
+        khachhangID,
+        ngaythanhtoan,
+        ngaynhanhang
+      )
     );
-    for (const ele of billDetail) {
-      let price = ele.soluong * ele.giadichvu;
-      element.tongtien += price; // nếu tổng tiền đang null hoặc undefined sẽ lỗi
-    }
-    data = [...data, { ...element, hdct: billDetail }];
-  }
 
-  res.send({ error_code: 0, data: data, message: null });
+    for (const element of bill) {
+      const billDetail = await queryDB(
+        billSQL.searchBillDetail(element.hoa_don_id)
+      );
+      for (const ele of billDetail) {
+        let price = ele.soluong * ele.giadichvu;
+        element.tongtien += price; // nếu tổng tiền đang null hoặc undefined sẽ lỗi
+      }
+      data = [...data, { ...element, hdct: billDetail }];
+    }
+
+    res.send({ error_code: 0, data: data, message: null });
+  } catch (err) {
+    res.json({ error: err });
+  }
 });
 
 router.post("/", checkToken, async (req, res) => {
@@ -49,8 +55,8 @@ router.post("/", checkToken, async (req, res) => {
       ngaytrahang,
       nhanvienID: req.id,
     },
-    (err, result) => {
-      if (!ngaynhanhang || !ngaytrahang || !khachhangID || listBillDetail) {
+    async (err, result) => {
+      if (!ngaynhanhang || !ngaytrahang || !khachhangID || !listBillDetail) {
         res.send({ error_code: 498, message: "Invalid data" });
       } else {
         if (err) throw err;
@@ -61,7 +67,7 @@ router.post("/", checkToken, async (req, res) => {
             hoadonID: result.insertId,
           });
         }
-        res.send({ error_code: 0, result: result, message: "Thêm thành công" });
+        res.send(result);
       }
     }
   );

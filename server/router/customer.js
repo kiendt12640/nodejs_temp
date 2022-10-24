@@ -11,7 +11,7 @@ router.get("/", checkToken, (req, res) => {
     customerSQL.searchCustomer(name, phoneNumber),
     (err, result) => {
       if (err) throw err;
-      res.send(result);
+      res.send({ error_code: 0, data: result, message: null });
     }
   );
 });

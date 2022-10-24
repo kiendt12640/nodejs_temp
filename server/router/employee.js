@@ -6,6 +6,7 @@ const { checkToken } = require("../utils/checkToken");
 const jwt = require("jsonwebtoken");
 const signinSQL = require("../sql/signin");
 const { isEmpty } = require("../utils/validate");
+require("dotenv").config();
 
 router.get("/", checkToken, (req, res) => {
   const { name, phoneNumber, trangthaiID } = req.query;
@@ -14,7 +15,7 @@ router.get("/", checkToken, (req, res) => {
     employeeSQL.searchNV(name, phoneNumber, trangthaiID),
     (err, result) => {
       if (err) throw err;
-      res.send(result);
+      res.send({ error_code: 0, data: result, message: null });
     }
   );
 });
@@ -64,15 +65,15 @@ router.post("/sign-in", (req, res) => {
     const { phoneNumber, password } = req.body;
 
     dbconnect.query(signinSQL.searchAcc(phoneNumber), (_, result) => {
-      if (isEmpty(result) || password != "111111") {
+      if (isEmpty(result) || password != `${process.env.JWT_SECRET}`) {
         res.send({
           error_code: 401,
           message: "PhoneNumber or password is incorrect",
         });
       } else {
         const id = result[0].id;
-        const token = jwt.sign({ id }, "111111", {
-          expiresIn: "30m",
+        const token = jwt.sign({ id }, `${process.env.JWT_SECRET}`, {
+          expiresIn: `${process.env.JWT_EXPIRES_IN}`,
         });
         res.send({ token, error_code: 0 });
       }

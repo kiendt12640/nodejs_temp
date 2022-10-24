@@ -11,7 +11,7 @@ router.get("/", checkToken, (req, res) => {
     serviceSQL.searchService(tendichvu, giadichvu),
     (err, result) => {
       if (err) throw err;
-      res.send(result);
+      res.send({ error_code: 0, data: result, message: null });
     }
   );
 });
