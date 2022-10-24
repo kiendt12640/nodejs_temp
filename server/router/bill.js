@@ -4,7 +4,6 @@ const router = express.Router();
 const billSQL = require("../sql/bill");
 const { queryDB } = require("../utils/query");
 const { checkToken } = require("../utils/checkToken");
-const { response } = require("express");
 
 router.get("/", checkToken, async (req, res) => {
   const { trangthaidonID, khachhangID, ngaythanhtoan, ngaynhanhang } =
@@ -22,16 +21,13 @@ router.get("/", checkToken, async (req, res) => {
     );
 
     for (const element of bill) {
+      element.tongtien = 0;
       const billDetail = await queryDB(
         billSQL.searchBillDetail(element.hoa_don_id)
       );
       for (const ele of billDetail) {
         let price = ele.soluong * ele.giadichvu;
-        if (typeof element.tongtien !== "undefined") {
-          element.tongtien += price;
-        } else {
-          res.send({ error_code: 404, message: "tongtien is undefined" });
-        }
+        element.tongtien += price;
       }
       data = [...data, { ...element, hdct: billDetail }];
     }
