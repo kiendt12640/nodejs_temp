@@ -46,60 +46,60 @@ router.post("/", checkToken, async (req, res) => {
     } = req.body;
 
     if (!ngaynhanhang || !ngaytrahang || !khachhangID || !listBillDetail) {
-      res.json({ error_code: 404, message: "Invalid data" }); // không return cho dù bắn về lỗi vẫn sẽ insert
+      res.json({ error_code: 404, message: "Invalid data" });
     }
 
     // đổi sang thành dạng promise
 
-    new Promise((resolve, reject) => {
-      try {
-        dbconnect.query(
-          billSQL.insertBill,
-          {
-            trangthaidonID,
-            khachhangID,
-            ngaynhanhang,
-            ngaytrahang,
-            nhanvienID: req.id,
-          },
-          (error, result) => {
-            if (error) reject(error);
-            for (let i = 0; i < listBillDetail.length; i++) {
-              dbconnect.query(billSQL.insertBillDetail, {
-                dichvuID: listBillDetail[i].dichvuID,
-                soluong: listBillDetail[i].soluong,
-                hoadonID: result.insertId,
-              });
-            }
-            resolve(result);
-          }
-        );
-      } catch (error) {
-        reject(error);
-      }
-    });
-
-    // dbconnect.query(
-    //   billSQL.insertBill,
-    //   {
-    //     trangthaidonID,
-    //     khachhangID,
-    //     ngaynhanhang,
-    //     ngaytrahang,
-    //     nhanvienID: req.id,
-    //   },
-    //   (err, result) => {
-    //     if (err) throw err;
-    //     for (let i = 0; i < listBillDetail.length; i++) {
-    //       dbconnect.query(billSQL.insertBillDetail, {
-    //         dichvuID: listBillDetail[i].dichvuID,
-    //         soluong: listBillDetail[i].soluong,
-    //         hoadonID: result.insertId,
-    //       });
-    //     }
-    //     res.send({ error_code: 0, result: result, message: null });
+    // new Promise((resolve, reject) => {
+    //   try {
+    //     dbconnect.query(
+    //       billSQL.insertBill,
+    //       {
+    //         trangthaidonID,
+    //         khachhangID,
+    //         ngaynhanhang,
+    //         ngaytrahang,
+    //         nhanvienID: req.id,
+    //       },
+    //       (error, result) => {
+    //         if (error) reject(error);
+    //         for (let i = 0; i < listBillDetail.length; i++) {
+    //           dbconnect.query(billSQL.insertBillDetail, {
+    //             dichvuID: listBillDetail[i].dichvuID,
+    //             soluong: listBillDetail[i].soluong,
+    //             hoadonID: result.insertId,
+    //           });
+    //         }
+    //         resolve(result);
+    //       }
+    //     );
+    //   } catch (error) {
+    //     reject(error);
     //   }
-    // );
+    // });
+
+    dbconnect.query(
+      billSQL.insertBill,
+      {
+        trangthaidonID,
+        khachhangID,
+        ngaynhanhang,
+        ngaytrahang,
+        nhanvienID: req.id,
+      },
+      (err, result) => {
+        if (err) throw err;
+        for (let i = 0; i < listBillDetail.length; i++) {
+          dbconnect.query(billSQL.insertBillDetail, {
+            dichvuID: listBillDetail[i].dichvuID,
+            soluong: listBillDetail[i].soluong,
+            hoadonID: result.insertId,
+          });
+        }
+        res.send({ error_code: 0, result: result, message: null });
+      }
+    );
   } catch (err) {
     res.json({
       error_code: 500,

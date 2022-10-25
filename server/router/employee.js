@@ -9,6 +9,7 @@ const { isEmpty } = require("../utils/validate");
 require("dotenv").config();
 const { queryDB } = require("../utils/query");
 const { queryDBInsert } = require("../utils/queryInsert");
+const { Employee } = require("../config/models/employeeModel");
 
 router.get("/", checkToken, async (req, res) => {
   try {
@@ -85,24 +86,27 @@ router.delete("/:id", checkToken, async (req, res) => {
   }
 });
 
-router.post("/sign-in", (req, res) => {
+router.post("/sign-in", async (req, res) => {
   try {
     const { phoneNumber, password } = req.body;
 
-    dbconnect.query(signinSQL.searchAcc(phoneNumber), (_, result) => {
-      if (isEmpty(result) || password != `${process.env.JWT_SECRET}`) {
-        res.send({
-          error_code: 404,
-          message: "PhoneNumber or password is incorrect",
-        });
-      } else {
-        const id = result[0].id;
-        const token = jwt.sign({ id }, `${process.env.JWT_SECRET}`, {
-          expiresIn: `${process.env.JWT_EXPIRES_IN}`,
-        });
-        res.send({ token, error_code: 0 });
-      }
+    const employee = await Employee.findAll({
+      where: {
+        phoneNumber: phoneNumber,
+      },
     });
+    if (!employee || password != `${process.env.JWT_SECRET}`) {
+      res.send({
+        error_code: 404,
+        message: "PhoneNumber or password is incorrect",
+      });
+    } else {
+      const id = employee[0].id;
+      const token = jwt.sign({ id }, `${process.env.JWT_SECRET}`, {
+        expiresIn: `${process.env.JWT_EXPIRES_IN}`,
+      });
+      res.send({ token, error_code: 0 });
+    }
   } catch (err) {
     res.json({
       error_code: 500,
@@ -110,6 +114,28 @@ router.post("/sign-in", (req, res) => {
       error_debug: err,
     });
   }
+
+  //   (_, result) => {
+  //     if (isEmpty(result) || password != `${process.env.JWT_SECRET}`) {
+  //       res.send({
+  //         error_code: 404,
+  //         message: "PhoneNumber or password is incorrect",
+  //       });
+  //     } else {
+  //       const id = result[0].id;
+  //       const token = jwt.sign({ id }, `${process.env.JWT_SECRET}`, {
+  //         expiresIn: `${process.env.JWT_EXPIRES_IN}`,
+  //       });
+  //       res.send({ token, error_code: 0 });
+  //     }
+  //   });
+  // } catch (err) {
+  //   res.json({
+  //     error_code: 500,
+  //     message: "Something went wrong, try again later",
+  //     error_debug: err,
+  //   });
+  // }
 });
 
 module.exports = router;
