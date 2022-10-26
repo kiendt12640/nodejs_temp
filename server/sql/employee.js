@@ -13,7 +13,7 @@ const searchNV = (name, phoneNumber, trangthaiID) => {
     SELECT *, nv.id as nv_id
     FROM nv
     INNER JOIN trangthai
-    ON nv.trangthaiID = trangthai.id ${condition}`;
+    ON nv.trangthaiId = trangthai.id ${condition}`;
 };
 
 const insertNV = "INSERT INTO nv SET ?";

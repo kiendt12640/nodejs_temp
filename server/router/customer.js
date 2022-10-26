@@ -4,14 +4,13 @@ const customerSQL = require("../sql/customer");
 const { checkToken } = require("../utils/checkToken");
 const { queryDB } = require("../utils/query");
 const { queryDBInsert } = require("../utils/queryInsert");
+const { Customer } = require("../config/models/customerModel");
 
 router.get("/", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber } = req.query;
 
-    const customer = await queryDB(
-      customerSQL.searchCustomer(name, phoneNumber)
-    );
+    const customer = await Customer.findAll();
 
     res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {

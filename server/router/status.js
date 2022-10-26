@@ -1,11 +1,10 @@
 const express = require("express");
-const statusSQL = require("../sql/status");
-const { queryDB } = require("../utils/query");
 const router = express.Router();
+const { Status } = require("../config/models/statusModel");
 
 router.get("/", async (_, res) => {
   try {
-    const status = await queryDB(statusSQL.searchStatus());
+    const status = await Status.findAll();
 
     res.send({ error_code: 0, data: status, message: null });
   } catch (err) {

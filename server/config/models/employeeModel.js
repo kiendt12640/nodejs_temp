@@ -1,5 +1,6 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../dbconnect");
+const { Status } = require("./statusModel");
 
 const Employee = sequelize.define(
   "nv",
@@ -20,15 +21,16 @@ const Employee = sequelize.define(
       allowNull: true,
       defaultValue: null,
     },
-    trangthaiID: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      defaultValue: null,
-    },
   },
   {
     timestamps: true,
+    tableName: "nv",
   }
 );
+
+// Employee.hasMany(Bill);
+// Bill.belongsTo(Employee, {
+//   foreignKey: "nhanvienID",
+// });
 
 module.exports = { Employee };

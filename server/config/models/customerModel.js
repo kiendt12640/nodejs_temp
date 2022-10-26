@@ -1,6 +1,5 @@
 const { Sequelize, DataTypes } = require("sequelize");
 const sequelize = require("../dbconnect");
-
 const Customer = sequelize.define(
   "khach_hang",
   {
@@ -23,7 +22,8 @@ const Customer = sequelize.define(
   },
   {
     timestamps: true,
+    tableName: "khach_hang",
   }
 );
 
-module.exports = Customer;
+module.exports = { Customer };

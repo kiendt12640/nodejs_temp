@@ -3,14 +3,13 @@ const router = express.Router();
 const serviceSQL = require("../sql/services");
 const { queryDB } = require("../utils/query");
 const { checkToken } = require("../utils/checkToken");
+const { Service } = require("../config/models/serviceModel");
 
 router.get("/", checkToken, async (req, res) => {
   try {
     const { tendichvu, giadichvu } = req.query;
 
-    const service = await queryDB(
-      serviceSQL.searchService(tendichvu, giadichvu)
-    );
+    const service = await Service.findAll();
 
     res.send({ error_code: 0, data: service, message: null });
   } catch (err) {
