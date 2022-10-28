@@ -14,20 +14,55 @@ const { Sequelize } = require("sequelize");
 const { Service } = require("../config/models/serviceModel");
 
 router.get("/list", checkToken, async (req, res) => {
-  // const { trangthaidonID, khachhangID } = req.query;
+  const { trangthaidonId, khachhangId } = req.query;
   try {
-    let bill = await Bill.findAll({
-      include: [
-        { model: Customer, as: "khach_hang" },
-        { model: StatusBill, as: "trang_thai_don" },
-        { model: Employee, as: "nhan_vien" },
-        {
-          model: BillDetail,
-          as: "hoa_don_chi_tiet",
-          include: [{ model: Service, as: "dich_vu" }],
+    let bill;
+    if (trangthaidonId) {
+      bill = await Bill.findAll({
+        include: [
+          { model: Customer, as: "khach_hang" },
+          { model: StatusBill, as: "trang_thai_don" },
+          { model: Employee, as: "nhan_vien" },
+          {
+            model: BillDetail,
+            as: "hoa_don_chi_tiet",
+            include: [{ model: Service, as: "dich_vu" }],
+          },
+        ],
+        where: {
+          trangthaidonId: trangthaidonId,
         },
-      ],
-    });
+      });
+    } else if (khachhangId) {
+      bill = await Bill.findAll({
+        include: [
+          { model: Customer, as: "khach_hang" },
+          { model: StatusBill, as: "trang_thai_don" },
+          { model: Employee, as: "nhan_vien" },
+          {
+            model: BillDetail,
+            as: "hoa_don_chi_tiet",
+            include: [{ model: Service, as: "dich_vu" }],
+          },
+        ],
+        where: {
+          khachhangId: khachhangId,
+        },
+      });
+    } else {
+      bill = await Bill.findAll({
+        include: [
+          { model: Customer, as: "khach_hang" },
+          { model: StatusBill, as: "trang_thai_don" },
+          { model: Employee, as: "nhan_vien" },
+          {
+            model: BillDetail,
+            as: "hoa_don_chi_tiet",
+            include: [{ model: Service, as: "dich_vu" }],
+          },
+        ],
+      });
+    }
 
     const newData = bill.reduce((a, c) => {
       const tong_tien =
@@ -39,7 +74,7 @@ router.get("/list", checkToken, async (req, res) => {
       return [...a, { ...c.dataValues, tong_tien }];
     }, []);
 
-    res.json({ error_code: 0, data: newData, message: null });
+    res.send({ error_code: 0, data: newData, message: null });
   } catch (err) {
     res.json({
       error_code: 500,
@@ -54,36 +89,39 @@ router.post("/", checkToken, async (req, res) => {
     const {
       ngaynhanhang,
       ngaytrahang,
-      trangthaidonID,
-      khachhangID,
+      trangthaidonId,
+      khachhangId,
       listBillDetail,
     } = req.body;
 
-    if (!ngaynhanhang || !ngaytrahang || !khachhangID || !listBillDetail) {
+    if (!ngaynhanhang || !ngaytrahang || !khachhangId || !listBillDetail) {
       res.json({ error_code: 404, message: "Invalid data" });
     }
 
-    dbconnect.query(
-      billSQL.insertBill,
-      {
-        trangthaidonID,
-        khachhangID,
-        ngaynhanhang,
-        ngaytrahang,
-        nhanvienID: req.id,
-      },
-      (err, result) => {
-        if (err) throw err;
+    await Bill.create({
+      trangthaidonId: trangthaidonId,
+      khachhangId: khachhangId,
+      ngaynhanhang: ngaynhanhang,
+      ngaytrahang: ngaytrahang,
+      nhanvienId: req.id,
+    })
+      .then((result) => {
         for (let i = 0; i < listBillDetail.length; i++) {
-          dbconnect.query(billSQL.insertBillDetail, {
-            dichvuID: listBillDetail[i].dichvuID,
+          BillDetail.create({
+            dichvuId: listBillDetail[i].dichvuId,
             soluong: listBillDetail[i].soluong,
-            hoadonID: result.insertId,
+            hoadonId: result.id,
           });
         }
         res.send({ error_code: 0, result: result, message: null });
-      }
-    );
+      })
+      .catch((err) => {
+        res.json({
+          error_code: 500,
+          message: "Something went wrong, try again later",
+          error_debug: err,
+        });
+      });
   } catch (err) {
     res.json({
       error_code: 500,
@@ -96,8 +134,8 @@ router.post("/", checkToken, async (req, res) => {
 router.put("/:id", checkToken, async (req, res) => {
   try {
     const {
-      trangthaidonID,
-      khachhangID,
+      trangthaidonId,
+      khachhangId,
       ngaynhanhang,
       ngaythanhtoan,
       ngaytrahang,
@@ -106,23 +144,27 @@ router.put("/:id", checkToken, async (req, res) => {
     if (
       !ngaynhanhang ||
       !ngaytrahang ||
-      !khachhangID ||
-      !trangthaidonID ||
+      !khachhangId ||
+      !trangthaidonId ||
       !ngaythanhtoan ||
       !req.params.id
     ) {
       res.send({ error_code: 404, message: "Invalid data" });
     }
 
-    const bill = await queryDB(
-      billSQL.updateBill(
-        trangthaidonID,
-        khachhangID,
-        ngaynhanhang,
-        ngaythanhtoan,
-        ngaytrahang,
-        req.params.id
-      )
+    const bill = await Bill.update(
+      {
+        trangthaidonId: trangthaidonId,
+        khachhangId: khachhangId,
+        ngaynhanhang: ngaynhanhang,
+        ngaythanhtoan: ngaythanhtoan,
+        ngaytrahang: ngaytrahang,
+      },
+      {
+        where: {
+          id: req.params.id,
+        },
+      }
     );
 
     res.send({ error_code: 0, data: bill, message: null });
@@ -137,7 +179,16 @@ router.put("/:id", checkToken, async (req, res) => {
 
 router.put("/delete_bill/:id", checkToken, async (req, res) => {
   try {
-    const bill = await queryDB(billSQL.deleteBill(req.params.id));
+    const bill = await Bill.update(
+      {
+        xacNhanXoa: 1,
+      },
+      {
+        where: {
+          id: req.params.id,
+        },
+      }
+    );
 
     res.send({ error_code: 0, data: bill, message: null });
   } catch (err) {

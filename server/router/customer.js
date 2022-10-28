@@ -1,16 +1,28 @@
 const express = require("express");
 const router = express.Router();
-const customerSQL = require("../sql/customer");
 const { checkToken } = require("../utils/checkToken");
-const { queryDB } = require("../utils/query");
-const { queryDBInsert } = require("../utils/queryInsert");
 const { Customer } = require("../config/models/customerModel");
 
 router.get("/", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber } = req.query;
 
-    const customer = await Customer.findAll();
+    let customer;
+    if (name) {
+      customer = await Customer.findAll({
+        where: {
+          name: name,
+        },
+      });
+    } else if (phoneNumber) {
+      customer = await Customer.findAll({
+        where: {
+          phoneNumber: phoneNumber,
+        },
+      });
+    } else {
+      customer = await Customer.findAll();
+    }
 
     res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {
@@ -29,9 +41,9 @@ router.post("/", checkToken, async (req, res) => {
       res.json({ error_code: 404, message: "Invalid data" });
     }
 
-    const customer = await queryDBInsert(customerSQL.insertCustomer, {
-      name,
-      phoneNumber,
+    const customer = await Customer.create({
+      name: name,
+      phoneNumber: phoneNumber,
     });
     res.send({ error_code: 0, result: customer, message: null });
   } catch (err) {
@@ -50,8 +62,13 @@ router.put("/:id", checkToken, async (req, res) => {
       res.send({ error_code: 404, message: "Invalid data" });
     }
 
-    const customer = await queryDB(
-      customerSQL.updateCustomer(name, phoneNumber, req.params.id)
+    const customer = await Customer.update(
+      { name: name, phoneNumber: phoneNumber },
+      {
+        where: {
+          id: req.params.id,
+        },
+      }
     );
 
     res.send({ error_code: 0, data: customer, message: null });
@@ -66,7 +83,11 @@ router.put("/:id", checkToken, async (req, res) => {
 
 router.delete("/:id", checkToken, async (req, res) => {
   try {
-    const customer = await queryDB(customerSQL.deleteCustomer(req.params.id));
+    const customer = await Customer.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
 
     res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {

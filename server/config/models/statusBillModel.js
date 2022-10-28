@@ -22,8 +22,4 @@ const StatusBill = sequelize.define(
   }
 );
 
-// Bill.belongsTo(StatusBill, {
-//   foreignKey: "trangthaidonID",
-// });
-
 module.exports = { StatusBill };

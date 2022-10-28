@@ -2,7 +2,6 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 require("dotenv").config();
-const connectDB = require("./config/dbconnect");
 const employee = require("./router/employee");
 const status = require("./router/status");
 const statusBill = require("./router/statusBill");

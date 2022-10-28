@@ -1,47 +1,65 @@
 const express = require("express");
 const router = express.Router();
-const employeeSQL = require("../sql/employee");
 const { checkToken } = require("../utils/checkToken");
 const jwt = require("jsonwebtoken");
 const { isEmpty } = require("../utils/validate");
 require("dotenv").config();
-const { queryDB } = require("../utils/query");
 const { Status } = require("../config/models/statusModel");
 const { Employee } = require("../config/models/employeeModel");
-const { Op } = require("sequelize");
 
 router.get("/", checkToken, async (req, res) => {
   try {
-    Status.hasMany(Employee);
-    Employee.belongsTo(Status, {
-      foreignKey: "trangthaiId",
-    });
-    const { name, phoneNumber, trangthaiID } = req.query;
-    // const query = [];
+    const { name, phoneNumber, trangthaiId } = req.query;
 
-    // // if (name || phoneNumber || trangthaiID) {
-    // //   if (name) query.push({ name: name });
-    // //   if (phoneNumber) query.push({ phoneNumber: phoneNumber });
-    // //   if (trangthaiID) query.push({ trangthaiID: trangthaiID });
-
-    // //   const employee = Employee.findAll({
-    // //     where: {
-    // //       [Op.and]: query,
-    // //     },
-    // //   });
-    // //   res.send({ error_code: 0, data: employee, message: null });
-    // // } else {
-    const employee = await Employee.findAll({
-      include: [
-        {
-          model: Status,
-          required: true,
+    let employee;
+    if (name) {
+      employee = await Employee.findAll({
+        include: [
+          {
+            model: Status,
+            required: true,
+          },
+        ],
+        where: {
+          name: name,
         },
-      ],
-    });
+      });
+    } else if (phoneNumber) {
+      employee = await Employee.findAll({
+        include: [
+          {
+            model: Status,
+            required: true,
+          },
+        ],
+        where: {
+          phoneNumber: phoneNumber,
+        },
+      });
+    } else if (trangthaiId) {
+      employee = await Employee.findAll({
+        include: [
+          {
+            model: Status,
+            required: true,
+          },
+        ],
+        where: {
+          trangthaiId: trangthaiId,
+        },
+      });
+    } else {
+      employee = await Employee.findAll({
+        include: [
+          {
+            model: Status,
+            required: true,
+          },
+        ],
+      });
+    }
 
     res.send({ error_code: 0, data: employee, message: null });
-    // }
   } catch (err) {
     res.json({
       error_code: 500,
@@ -54,8 +72,7 @@ router.get("/", checkToken, async (req, res) => {
 router.post("/", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber, trangthaiId } = req.body;
-    console.log({ name, phoneNumber, trangthaiID });
-    if (!name || !phoneNumber || !trangthaiID) {
+    if (!name || !phoneNumber || !trangthaiId) {
       res.json({ error_code: 404, message: "Invalid data" });
     }
 
@@ -76,13 +93,18 @@ router.post("/", checkToken, async (req, res) => {
 
 router.put("/:id", checkToken, async (req, res) => {
   try {
-    const { name, phoneNumber, trangthaiID } = req.body;
-    if (!name || !phoneNumber || !trangthaiID) {
+    const { name, phoneNumber, trangthaiId } = req.body;
+    if (!name || !phoneNumber || !trangthaiId) {
       res.send({ error_code: 404, message: "Invalid data" });
     }
 
-    const employee = await queryDB(
-      employeeSQL.updateNV(name, phoneNumber, trangthaiID, req.params.id)
+    const employee = await Employee.update(
+      { name: name, phoneNumber: phoneNumber, trangthaiId: trangthaiId },
+      {
+        where: {
+          id: req.params.id,
+        },
+      }
     );
 
     res.send({ error_code: 0, data: employee, message: null });
@@ -97,7 +119,11 @@ router.put("/:id", checkToken, async (req, res) => {
 
 router.delete("/:id", checkToken, async (req, res) => {
   try {
-    const employee = await queryDB(employeeSQL.deleteNV(req.params.id));
+    const employee = await Employee.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
 
     res.send({ error_code: 0, data: employee, message: null });
   } catch (err) {
