@@ -98,30 +98,22 @@ router.post("/", checkToken, async (req, res) => {
       res.json({ error_code: 404, message: "Invalid data" });
     }
 
-    await Bill.create({
+    const bill = await Bill.create({
       trangthaidonId: trangthaidonId,
       khachhangId: khachhangId,
       ngaynhanhang: ngaynhanhang,
       ngaytrahang: ngaytrahang,
       nhanvienId: req.id,
-    })
-      .then((result) => {
-        for (let i = 0; i < listBillDetail.length; i++) {
-          BillDetail.create({
-            dichvuId: listBillDetail[i].dichvuId,
-            soluong: listBillDetail[i].soluong,
-            hoadonId: result.id,
-          });
-        }
-        res.send({ error_code: 0, result: result, message: null });
-      })
-      .catch((err) => {
-        res.json({
-          error_code: 500,
-          message: "Something went wrong, try again later",
-          error_debug: err,
-        });
+    });
+
+    for (let i = 0; i < listBillDetail.length; i++) {
+      BillDetail.create({
+        dichvuId: listBillDetail[i].dichvuId,
+        soluong: listBillDetail[i].soluong,
+        hoadonId: bill.id,
       });
+    }
+    return res.send({ error_code: 0, result: bill, message: null });
   } catch (err) {
     res.json({
       error_code: 500,
