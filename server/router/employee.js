@@ -12,52 +12,19 @@ router.get("/", checkToken, async (req, res) => {
     const { name, phoneNumber, trangthaiId } = req.query;
 
     let employee;
-    if (name) {
-      employee = await Employee.findAll({
-        include: [
-          {
-            model: Status,
-            required: true,
-          },
-        ],
-        where: {
-          name: name,
+    let condition = {};
+    if (name) condition.name = name;
+    if (phoneNumber) condition.phoneNumber = phoneNumber;
+    if (trangthaiId) condition.trangthaiId = trangthaiId;
+    employee = await Employee.findAll({
+      include: [
+        {
+          model: Status,
+          required: true,
         },
-      });
-    } else if (phoneNumber) {
-      employee = await Employee.findAll({
-        include: [
-          {
-            model: Status,
-            required: true,
-          },
-        ],
-        where: {
-          phoneNumber: phoneNumber,
-        },
-      });
-    } else if (trangthaiId) {
-      employee = await Employee.findAll({
-        include: [
-          {
-            model: Status,
-            required: true,
-          },
-        ],
-        where: {
-          trangthaiId: trangthaiId,
-        },
-      });
-    } else {
-      employee = await Employee.findAll({
-        include: [
-          {
-            model: Status,
-            required: true,
-          },
-        ],
-      });
-    }
+      ],
+      where: condition
+    });
 
     res.send({ error_code: 0, data: employee, message: null });
   } catch (err) {
@@ -73,7 +40,7 @@ router.post("/", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber, trangthaiId } = req.body;
     if (!name || !phoneNumber || !trangthaiId) {
-      res.json({ error_code: 404, message: "Invalid data" });
+     return res.json({ error_code: 404, message: "Invalid data" });
     }
 
     const employee = await Employee.create({
@@ -81,7 +48,7 @@ router.post("/", checkToken, async (req, res) => {
       phoneNumber: phoneNumber,
       trangthaiId: trangthaiId,
     });
-    res.send({ error_code: 0, result: employee, message: null });
+  return  res.send({ error_code: 0, result: employee, message: null });
   } catch (err) {
     res.json({
       error_code: 500,

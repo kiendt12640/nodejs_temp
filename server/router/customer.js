@@ -8,21 +8,12 @@ router.get("/", checkToken, async (req, res) => {
     const { name, phoneNumber } = req.query;
 
     let customer;
-    if (name) {
-      customer = await Customer.findAll({
-        where: {
-          name: name,
-        },
-      });
-    } else if (phoneNumber) {
-      customer = await Customer.findAll({
-        where: {
-          phoneNumber: phoneNumber,
-        },
-      });
-    } else {
-      customer = await Customer.findAll();
-    }
+    let condition = {}
+    if (name) condition.name = name;
+    if (phoneNumber) condition.phoneNumber = phoneNumber;
+    customer = await Customer.findAll({
+      where: condition
+    });
 
     res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {
@@ -45,7 +36,7 @@ router.post("/", checkToken, async (req, res) => {
       name: name,
       phoneNumber: phoneNumber,
     });
-    res.send({ error_code: 0, result: customer, message: null });
+  return  res.send({ error_code: 0, result: customer, message: null });
   } catch (err) {
     res.json({
       error_code: 500,
@@ -71,7 +62,7 @@ router.put("/:id", checkToken, async (req, res) => {
       }
     );
 
-    res.send({ error_code: 0, data: customer, message: null });
+  return  res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {
     res.json({
       error_code: 500,
@@ -89,7 +80,7 @@ router.delete("/:id", checkToken, async (req, res) => {
       },
     });
 
-    res.send({ error_code: 0, data: customer, message: null });
+   return res.send({ error_code: 0, data: customer, message: null });
   } catch (err) {
     res.json({
       error_code: 500,

@@ -8,20 +8,13 @@ router.get("/", checkToken, async (req, res) => {
     const { tendichvu, giadichvu } = req.query;
 
     let service;
+    let condition = {}
+    if (tendichvu) condition.tendichvu = tendichvu;
+    if (giadichvu) condition.giadichvu = giadichvu;
 
-    if (tendichvu) {
-      service = await Service.findAll({
-        where: {
-          tendichvu: tendichvu,
-        },
-      });
-    } else if (giadichvu) {
-      service = await Service.findAll({
-        order: [["giadichvu", giadichvu]],
-      });
-    } else {
-      service = await Service.findAll();
-    }
+    service = await Service.findAll({
+      where: condition
+    });
 
     res.send({ error_code: 0, data: service, message: null });
   } catch (err) {

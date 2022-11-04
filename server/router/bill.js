@@ -17,52 +17,24 @@ router.get("/list", checkToken, async (req, res) => {
   const { trangthaidonId, khachhangId } = req.query;
   try {
     let bill;
-    if (trangthaidonId) {
-      bill = await Bill.findAll({
-        include: [
-          { model: Customer, as: "khach_hang" },
-          { model: StatusBill, as: "trang_thai_don" },
-          { model: Employee, as: "nhan_vien" },
-          {
-            model: BillDetail,
-            as: "hoa_don_chi_tiet",
-            include: [{ model: Service, as: "dich_vu" }],
-          },
-        ],
-        where: {
-          trangthaidonId: trangthaidonId,
+    let condition = {}
+    if (trangthaidonId) condition.trangthaidonId = trangthaidonId;
+    if (khachhangId) condition.khachhangId = khachhangId;
+
+    bill = await Bill.findAll({
+      include: [
+        { model: Customer, as: "khach_hang" },
+        { model: StatusBill, as: "trang_thai_don" },
+        { model: Employee, as: "nhan_vien" },
+        {
+          model: BillDetail,
+          as: "hoa_don_chi_tiet",
+          include: [{ model: Service, as: "dich_vu" }],
         },
-      });
-    } else if (khachhangId) {
-      bill = await Bill.findAll({
-        include: [
-          { model: Customer, as: "khach_hang" },
-          { model: StatusBill, as: "trang_thai_don" },
-          { model: Employee, as: "nhan_vien" },
-          {
-            model: BillDetail,
-            as: "hoa_don_chi_tiet",
-            include: [{ model: Service, as: "dich_vu" }],
-          },
-        ],
-        where: {
-          khachhangId: khachhangId,
-        },
-      });
-    } else {
-      bill = await Bill.findAll({
-        include: [
-          { model: Customer, as: "khach_hang" },
-          { model: StatusBill, as: "trang_thai_don" },
-          { model: Employee, as: "nhan_vien" },
-          {
-            model: BillDetail,
-            as: "hoa_don_chi_tiet",
-            include: [{ model: Service, as: "dich_vu" }],
-          },
-        ],
-      });
-    }
+      ],
+      where: condition
+    });
+    
 
     const newData = bill.reduce((a, c) => {
       const tong_tien =
@@ -95,7 +67,7 @@ router.post("/", checkToken, async (req, res) => {
     } = req.body;
 
     if (!ngaynhanhang || !ngaytrahang || !khachhangId || !listBillDetail) {
-      res.json({ error_code: 404, message: "Invalid data" });
+     return res.json({ error_code: 404, message: "Invalid data" });
     }
 
     const bill = await Bill.create({
@@ -141,7 +113,7 @@ router.put("/:id", checkToken, async (req, res) => {
       !ngaythanhtoan ||
       !req.params.id
     ) {
-      res.send({ error_code: 404, message: "Invalid data" });
+     return res.send({ error_code: 404, message: "Invalid data" });
     }
 
     const bill = await Bill.update(
@@ -159,7 +131,7 @@ router.put("/:id", checkToken, async (req, res) => {
       }
     );
 
-    res.send({ error_code: 0, data: bill, message: null });
+   return res.send({ error_code: 0, data: bill, message: null });
   } catch (err) {
     res.json({
       error_code: 500,
@@ -182,7 +154,7 @@ router.put("/delete_bill/:id", checkToken, async (req, res) => {
       }
     );
 
-    res.send({ error_code: 0, data: bill, message: null });
+   return res.send({ error_code: 0, data: bill, message: null });
   } catch (err) {
     res.json({
       error_code: 500,
