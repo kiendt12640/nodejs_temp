@@ -13,9 +13,9 @@ router.get("/", checkToken, async (req, res) => {
 
     let employee;
     let condition = {};
-    if (name) condition.name = name;
-    if (phoneNumber) condition.phoneNumber = phoneNumber;
-    if (trangthaiId) condition.trangthaiId = trangthaiId;
+    if (!isEmpty(name)) condition.name = name;
+    if (!isEmpty(phoneNumber)) condition.phoneNumber = phoneNumber;
+    if (!isEmpty(trangthaiId)) condition.trangthaiId = trangthaiId;
     employee = await Employee.findAll({
       include: [
         {
@@ -39,7 +39,7 @@ router.get("/", checkToken, async (req, res) => {
 router.post("/", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber, trangthaiId } = req.body;
-    if (!name || !phoneNumber || !trangthaiId) {
+    if (isEmpty(name) || isEmpty(phoneNumber) || isEmpty(trangthaiId)) {
      return res.json({ error_code: 404, message: "Invalid data" });
     }
 
@@ -61,7 +61,7 @@ router.post("/", checkToken, async (req, res) => {
 router.put("/:id", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber, trangthaiId } = req.body;
-    if (!name || !phoneNumber || !trangthaiId) {
+    if (isEmpty(name) || isEmpty(phoneNumber) || isEmpty(trangthaiId)) {
       res.send({ error_code: 404, message: "Invalid data" });
     }
 

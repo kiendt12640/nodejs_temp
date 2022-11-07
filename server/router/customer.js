@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { checkToken } = require("../utils/checkToken");
+const { isEmpty } = require("../utils/validate")
 const { Customer } = require("../config/models/customerModel");
 
 router.get("/", checkToken, async (req, res) => {
@@ -9,8 +10,8 @@ router.get("/", checkToken, async (req, res) => {
 
     let customer;
     let condition = {}
-    if (name) condition.name = name;
-    if (phoneNumber) condition.phoneNumber = phoneNumber;
+    if (!isEmpty(name)) condition.name = name;
+    if (!isEmpty(phoneNumber)) condition.phoneNumber = phoneNumber;
     customer = await Customer.findAll({
       where: condition
     });
@@ -28,7 +29,7 @@ router.get("/", checkToken, async (req, res) => {
 router.post("/", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber } = req.body;
-    if (!name || !phoneNumber) {
+    if (isEmpty(name) || isEmpty(phoneNumber)) {
       res.json({ error_code: 404, message: "Invalid data" });
     }
 
@@ -49,7 +50,7 @@ router.post("/", checkToken, async (req, res) => {
 router.put("/:id", checkToken, async (req, res) => {
   try {
     const { name, phoneNumber } = req.body;
-    if (!name || !phoneNumber || !req.params.id) {
+    if (isEmpty(name) || isEmpty(phoneNumber) || isEmpty(req.params.id)) {
       res.send({ error_code: 404, message: "Invalid data" });
     }
 

@@ -1,7 +1,5 @@
 const express = require("express");
-const dbconnect = require("../config/dbconnect");
 const router = express.Router();
-const billSQL = require("../sql/bill");
 const { queryDB } = require("../utils/query");
 const { checkToken } = require("../utils/checkToken");
 const { queryDBInsert } = require("../utils/queryInsert");
@@ -10,16 +8,16 @@ const { Customer } = require("../config/models/customerModel");
 const { Employee } = require("../config/models/employeeModel");
 const { StatusBill } = require("../config/models/statusBillModel");
 const { BillDetail } = require("../config/models/billDetailModel");
-const { Sequelize } = require("sequelize");
 const { Service } = require("../config/models/serviceModel");
+const { isEmpty } = require("../utils/validate")
 
 router.get("/list", checkToken, async (req, res) => {
   const { trangthaidonId, khachhangId } = req.query;
   try {
     let bill;
     let condition = {}
-    if (trangthaidonId) condition.trangthaidonId = trangthaidonId;
-    if (khachhangId) condition.khachhangId = khachhangId;
+    if (!isEmpty(trangthaidonId)) condition.trangthaidonId = trangthaidonId;
+    if (!isEmpty(khachhangId)) condition.khachhangId = khachhangId;
 
     bill = await Bill.findAll({
       include: [
@@ -66,7 +64,7 @@ router.post("/", checkToken, async (req, res) => {
       listBillDetail,
     } = req.body;
 
-    if (!ngaynhanhang || !ngaytrahang || !khachhangId || !listBillDetail) {
+    if (isEmpty(ngaynhanhang) || isEmpty(ngaytrahang) || !isEmpty(khachhangId) || isEmpty(listBillDetail)) {
      return res.json({ error_code: 404, message: "Invalid data" });
     }
 
@@ -106,12 +104,12 @@ router.put("/:id", checkToken, async (req, res) => {
     } = req.body;
 
     if (
-      !ngaynhanhang ||
-      !ngaytrahang ||
-      !khachhangId ||
-      !trangthaidonId ||
-      !ngaythanhtoan ||
-      !req.params.id
+      isEmpty(ngaynhanhang) ||
+      isEmpty(ngaytrahang) ||
+      isEmpty(khachhangId) ||
+      isEmpty(trangthaidonId) ||
+      isEmpty(ngaythanhtoan) ||
+      isEmpty(req.params.id)
     ) {
      return res.send({ error_code: 404, message: "Invalid data" });
     }

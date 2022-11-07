@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { checkToken } = require("../utils/checkToken");
 const { Service } = require("../config/models/serviceModel");
+const { isEmpty } = require("../utils/validate")
 
 router.get("/", checkToken, async (req, res) => {
   try {
@@ -9,8 +10,8 @@ router.get("/", checkToken, async (req, res) => {
 
     let service;
     let condition = {}
-    if (tendichvu) condition.tendichvu = tendichvu;
-    if (giadichvu) condition.giadichvu = giadichvu;
+    if (!isEmpty(tendichvu)) condition.tendichvu = tendichvu;
+    if (!isEmpty(giadichvu)) condition.giadichvu = giadichvu;
 
     service = await Service.findAll({
       where: condition
