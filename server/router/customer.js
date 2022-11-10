@@ -1,10 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const { checkToken } = require("../utils/checkToken");
+const router = require('./setUpRouter').Router();
 const { isEmpty } = require("../utils/validate")
 const { Customer } = require("../config/models/customerModel");
 
-router.get("/", checkToken, async (req, res) => {
+const getListCustomer = async (req, res) => {
   try {
     const { name, phoneNumber } = req.query;
 
@@ -24,9 +22,9 @@ router.get("/", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.post("/", checkToken, async (req, res) => {
+const addCustomer = async (req, res) => {
   try {
     const { name, phoneNumber } = req.body;
     if (isEmpty(name) || isEmpty(phoneNumber)) {
@@ -45,9 +43,9 @@ router.post("/", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.put("/:id", checkToken, async (req, res) => {
+const updateCustomer = async (req, res) => {
   try {
     const { name, phoneNumber } = req.body;
     if (isEmpty(name) || isEmpty(phoneNumber) || isEmpty(req.params.id)) {
@@ -71,9 +69,9 @@ router.put("/:id", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.delete("/:id", checkToken, async (req, res) => {
+const deleteCustomer = async (req, res) => {
   try {
     const customer = await Customer.destroy({
       where: {
@@ -89,6 +87,11 @@ router.delete("/:id", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
+
+router.getRoute('/', getListCustomer, true)
+router.postRoute('/', addCustomer, true)
+router.putRoute('/:id', updateCustomer, true)
+router.deleteRoute('/:id', deleteCustomer, true)
 
 module.exports = router;

@@ -1,13 +1,11 @@
-const express = require("express");
-const router = express.Router();
-const { checkToken } = require("../utils/checkToken");
+const router = require('./setUpRouter').Router();
 const jwt = require("jsonwebtoken");
 const { isEmpty } = require("../utils/validate");
 require("dotenv").config();
 const { Status } = require("../config/models/statusModel");
 const { Employee } = require("../config/models/employeeModel");
 
-router.get("/", checkToken, async (req, res) => {
+const getListEmployee = async (req, res) => {
   try {
     const { name, phoneNumber, trangthaiId } = req.query;
 
@@ -34,9 +32,9 @@ router.get("/", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.post("/", checkToken, async (req, res) => {
+const addEmployee = async (req, res) => {
   try {
     const { name, phoneNumber, trangthaiId } = req.body;
     if (isEmpty(name) || isEmpty(phoneNumber) || isEmpty(trangthaiId)) {
@@ -56,9 +54,9 @@ router.post("/", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.put("/:id", checkToken, async (req, res) => {
+const updateEmployee = async (req, res) => {
   try {
     const { name, phoneNumber, trangthaiId } = req.body;
     if (isEmpty(name) || isEmpty(phoneNumber) || isEmpty(trangthaiId)) {
@@ -82,9 +80,9 @@ router.put("/:id", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.delete("/:id", checkToken, async (req, res) => {
+const deleteEmployee = async (req, res) => {
   try {
     const employee = await Employee.destroy({
       where: {
@@ -100,7 +98,7 @@ router.delete("/:id", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
 router.post("/sign-in", async (req, res) => {
   try {
@@ -131,5 +129,10 @@ router.post("/sign-in", async (req, res) => {
     });
   }
 });
+
+router.getRoute('/', getListEmployee, true)
+router.postRoute('/', addEmployee, true)
+router.putRoute('/:id', updateEmployee, true)
+router.deleteRoute('/:id', deleteEmployee, true)
 
 module.exports = router;

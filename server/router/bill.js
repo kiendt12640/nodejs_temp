@@ -1,8 +1,4 @@
-const express = require("express");
-const router = express.Router();
-const { queryDB } = require("../utils/query");
-const { checkToken } = require("../utils/checkToken");
-const { queryDBInsert } = require("../utils/queryInsert");
+const router = require('./setUpRouter').Router();
 const { Bill } = require("../config/models/billModel");
 const { Customer } = require("../config/models/customerModel");
 const { Employee } = require("../config/models/employeeModel");
@@ -11,7 +7,7 @@ const { BillDetail } = require("../config/models/billDetailModel");
 const { Service } = require("../config/models/serviceModel");
 const { isEmpty } = require("../utils/validate")
 
-router.get("/list", checkToken, async (req, res) => {
+const getListBill =  async (req, res) => {
   const { trangthaidonId, khachhangId } = req.query;
   try {
     let bill;
@@ -52,9 +48,9 @@ router.get("/list", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.post("/", checkToken, async (req, res) => {
+const addBill =  async (req, res) => {
   try {
     const {
       ngaynhanhang,
@@ -91,9 +87,9 @@ router.post("/", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.put("/:id", checkToken, async (req, res) => {
+const updateBill = async (req, res) => {
   try {
     const {
       trangthaidonId,
@@ -137,9 +133,9 @@ router.put("/:id", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-router.put("/delete_bill/:id", checkToken, async (req, res) => {
+const deleteBill =  async (req, res) => {
   try {
     const bill = await Bill.update(
       {
@@ -160,6 +156,12 @@ router.put("/delete_bill/:id", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
 
-module.exports = router;
+router.getRoute('/list', getListBill, true)
+router.postRoute('/', addBill, true)
+router.putRoute('/:id', updateBill, true)
+router.putRoute('/delete_bill/:id', deleteBill, true)
+
+
+module.exports = router; 

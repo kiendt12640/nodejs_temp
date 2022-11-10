@@ -1,10 +1,8 @@
-const express = require("express");
-const router = express.Router();
-const { checkToken } = require("../utils/checkToken");
+const router = require('./setUpRouter').Router();
 const { Service } = require("../config/models/serviceModel");
 const { isEmpty } = require("../utils/validate")
 
-router.get("/", checkToken, async (req, res) => {
+const getListService = async (req, res) => {
   try {
     const { tendichvu, giadichvu } = req.query;
 
@@ -25,6 +23,8 @@ router.get("/", checkToken, async (req, res) => {
       error_debug: err,
     });
   }
-});
+};
+
+router.getRoute('/', getListService, true)
 
 module.exports = router;

@@ -1,8 +1,7 @@
-const express = require("express");
-const router = express.Router();
+const router = require('./setUpRouter').Router();
 const { Status } = require("../config/models/statusModel");
 
-router.get("/", async (_, res) => {
+const getListStatus = async (_, res) => {
   try {
     const status = await Status.findAll();
 
@@ -14,6 +13,9 @@ router.get("/", async (_, res) => {
       error_debug: err,
     });
   }
-});
+};
+
+router.getRoute('/', getListStatus, true)
+
 
 module.exports = router;
